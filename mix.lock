@@ -1,0 +1,2 @@
+%{"iconv": {:hex, :iconv, "1.0.0"},
+  "iconverl": {:git, "https://github.com/edescourtis/iconverl.git", "cd533f48c3348f01e6645802ebd50aa395f53232", [tag: "3.0.18"]}}
