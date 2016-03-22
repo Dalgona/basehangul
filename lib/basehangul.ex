@@ -33,20 +33,15 @@ defmodule BaseHangul do
         else (if sz == 4, do: get_euc(bor(h >>> 8, 1024)), else: get_euc(h)) end)
       _ ->
         to_euclist({t, sz}, out ++ (
-          if h == 0 and sz <= (4 - length(list)) do @padchr
-          else get_euc(h) end
+          if h == 0 and sz <= (4 - length(list)) do @padchr else get_euc(h) end
         ))
     end
   end
 
+  defp to_ordlist(<<>>, out), do: out
   defp to_ordlist(eucstr, out) do
-    case eucstr do
-      <<>> -> out
-      _ ->
-        <<n1, n2>> <> rest = eucstr
-        to_ordlist(rest,
-          out ++ (if [n1, n2] == @padchr do [false] else [get_ord(n1, n2)] end))
-    end
+    <<n1, n2>> <> rest = eucstr
+    to_ordlist(rest, out ++ (if [n1, n2] == @padchr do [false] else [get_ord(n1, n2)] end))
   end
 
   defp repack_10to8(ordlist) do
