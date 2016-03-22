@@ -1,20 +1,14 @@
 # BaseHangul
 
-**TODO: Add description**
+Elixir implementation of BaseHangul, the human-readable binary encoding.
 
-## Installation
+The original PHP implementation can be found [here](https://github.com/koreapyj/basehangul).
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+## License
 
-  1. Add basehangul to your list of dependencies in `mix.exs`:
+Copyright &copy; Dalgona. <dalgona@hontou.moe>
 
-        def deps do
-          [{:basehangul, "~> 0.0.1"}]
-        end
+You can do whatever you wanna do as long as you **do not** sell the source code or compiled binaries to anyone else.
 
-  2. Ensure basehangul is started before your application:
-
-        def application do
-          [applications: [:basehangul]]
-        end
+This software is provided **"AS IS"**. I **do not** garuntee that this software will work correctly forever and I **am not** responsible for any loss of data caused by this software.
 
