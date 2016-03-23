@@ -1,2 +1,4 @@
-%{"iconv": {:hex, :iconv, "1.0.0"},
+%{"earmark": {:hex, :earmark, "0.2.1"},
+  "ex_doc": {:hex, :ex_doc, "0.11.4"},
+  "iconv": {:hex, :iconv, "1.0.0"},
   "iconverl": {:git, "https://github.com/edescourtis/iconverl.git", "cd533f48c3348f01e6645802ebd50aa395f53232", [tag: "3.0.18"]}}
