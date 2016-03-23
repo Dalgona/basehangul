@@ -20,7 +20,7 @@ defp deps do
 end
 ```
 
-Currently, this implementation only supports encoding/decoding through any I/O devices.
+This implementation supports encoding/decoding through any I/O devices.
 
 ```elixir
 % iex -S mix
@@ -34,6 +34,19 @@ iex(3)> {:ok, sio} = StringIO.open "낏뗐맸굉깖둠덱뮴닥땡결흐"
 iex(4)> BaseHangul.decode sio, :stdio
 Hello, world!:ok
 ```
+
+And it takes strings(binaries), too. In this case, those functions return a result string(binary).
+
+```elixir
+iex(5)> encoded = BaseHangul.encode "Hello, world!"
+"낏뗐맸굉깖둠덱뮴닥땡결흐"
+iex(6)> decoded = BaseHangul.decode encoded
+"Hello, world!"
+iex(7)> [encoded, decoded]
+["낏뗐맸굉깖둠덱뮴닥땡결흐", "Hello, world!"]
+```
+
+Have fun!
 
 ## License
 

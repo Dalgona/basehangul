@@ -3,19 +3,24 @@ defmodule BaseHangul do
 
   @padchr [0xc8, 0xe5]
 
-  def encode(indev, outdev \\ Process.group_leader()) do
-    strm = IO.binstream indev, 5
-    Enum.each strm, fn x ->
-      IO.write(outdev, :iconv.convert("euc-kr", "utf-8", x |> repack_8to10 |> to_euclist([])))
-    end
+  def encode(input) when is_binary(input) do
+    {:ok, sio} = StringIO.open input
+    Stream.map(IO.binstream(sio, 5), &(encunit &1)) |> Enum.join("")
   end
 
-  def decode(indev, outdev \\ Process.group_leader()) do
-    strm = IO.binstream indev, 12
-    Enum.each strm, fn x ->
-      IO.write(outdev, :iconv.convert("utf-8", "euc-kr", x) |> to_ordlist([]) |> repack_10to8)
-    end
+  def decode(input) when is_binary(input) do
+    {:ok, sio} = StringIO.open input
+    Stream.map(IO.binstream(sio, 12), &(decunit &1)) |> Enum.join("")
   end
+
+  def encode(indev, outdev \\ Process.group_leader()),
+    do: Enum.each IO.binstream(indev, 5), &(IO.write(outdev, encunit &1))
+
+  def decode(indev, outdev \\ Process.group_leader()),
+    do: Enum.each IO.binstream(indev, 12), &(IO.write(outdev, decunit &1))
+
+  defp encunit(x), do: :iconv.convert("euc-kr", "utf-8", x |> repack_8to10 |> to_euclist([]))
+  defp decunit(x), do: :iconv.convert("utf-8", "euc-kr", x) |> to_ordlist([]) |> repack_10to8
 
   defp repack_8to10(bin) when byte_size(bin) <= 5 do
     sz = byte_size bin
