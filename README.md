@@ -58,6 +58,11 @@ This software is provided **"AS IS"**. I **do not** guarantee that this software
 
 ## Changelog
 
+### 0.2.0 (23 March 2016)
+
+* Added more encoder/decoder wrappers for the convenience.
+* Added library documentation.
+
 ### 0.1.0 (22 March 2016)
 
 Initial development release. `basehangul` is now available on [Hex](https://hex.pm/packages/basehangul/0.1.0).
