@@ -3,7 +3,7 @@ defmodule BaseHangul.Mixfile do
 
   def project do
     [app: :basehangul,
-     version: "0.2.0",
+     version: "0.2.1",
      elixir: "~> 1.2",
      description: "Elixir implementation of BaseHangul.",
      package: package,

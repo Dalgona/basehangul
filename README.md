@@ -58,6 +58,10 @@ This software is provided **"AS IS"**. I **do not** guarantee that this software
 
 ## Changelog
 
+### 0.2.1 (12 April 2016)
+
+* Now the decoder raises an `ArgumentError` when invalid BaseHangul string is provided as an input.
+
 ### 0.2.0 (23 March 2016)
 
 * Added more encoder/decoder wrappers for the convenience.

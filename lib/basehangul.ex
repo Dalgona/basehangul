@@ -119,8 +119,12 @@ defmodule BaseHangul do
 
   defp to_ordlist(<<>>, out), do: out
   defp to_ordlist(eucstr, out) do
-    <<n1, n2>> <> rest = eucstr
-    to_ordlist(rest, out ++ (if [n1, n2] == @padchr do [false] else [get_ord(n1, n2)] end))
+    try do
+      <<n1, n2>> <> rest = eucstr
+      to_ordlist(rest, out ++ (if [n1, n2] == @padchr do [false] else [get_ord(n1, n2)] end))
+    rescue
+      MatchError -> raise ArgumentError, message: "Not a vaild BaseHangul string"
+    end
   end
 
   defp repack_10to8(ordlist) do
@@ -141,6 +145,18 @@ defmodule BaseHangul do
   defp repack_8to10_rev(0, list) when length(list) == 4, do: list
   defp repack_8to10_rev(n, list), do: repack_8to10_rev(n >>> 10, list ++ [n &&& 0x3FF])
 
-  defp get_euc(ord), do: [0xb0 + div(ord, 94), 0xa1 + rem(ord, 94)]
-  defp get_ord(n1, n2), do: (n1 - 0xb0) * 94 + (n2 - 0xa1)
+  defp get_euc(ord) do
+    cond do
+      ord > 1027 -> raise ArgumentError, message: "Character ordinal out of range"
+      true -> [0xb0 + div(ord, 94), 0xa1 + rem(ord, 94)]
+    end
+  end
+
+  defp get_ord(n1, n2) do
+    num = (n1 - 0xb0) * 94 + (n2 - 0xa1)
+    cond do
+      num > 1027 or num < 0 -> raise ArgumentError, message: "Not a valid BaseHangul string"
+      true -> num
+    end
+  end
 end
