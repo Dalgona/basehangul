@@ -58,7 +58,10 @@ defmodule BaseHangul do
   #
 
   defp encunit(x) do
-    :iconv.convert("euc-kr", "utf-8", x |> repack_8to10 |> to_euclist([]))
+    {tbits, n_bytes} = repack_8to10(x)
+    euc_list = to_euclist(tbits, n_bytes, [])
+
+    :iconv.convert("euc-kr", "utf-8", euc_list)
   end
 
   defp decunit(x) do
@@ -75,32 +78,34 @@ defmodule BaseHangul do
     {tbit_packed, size}
   end
 
-  defp to_euclist({list, sz}, out) when length(list) > 0 do
-    [h | t] = list
+  @spec to_euclist([integer()], integer(), [integer()]) :: [integer()]
+  defp to_euclist(ords, n_bytes, acc)
+  defp to_euclist([], _n_bytes, acc), do: Enum.reverse(acc)
 
-    case length(list) do
-      4 ->
-        to_euclist({t, sz}, out ++ get_euc(h))
+  defp to_euclist([ord], n_bytes, acc) do
+    euc =
+      cond do
+        ord == 0 and n_bytes < 4 -> @padchr
+        n_bytes == 4 -> get_euc((ord >>> 8) ||| 1024)
+        :else -> get_euc(ord)
+      end
 
-      1 ->
-        out ++
-          if h == 0 and sz < 4 do
-            @padchr
-          else
-            if sz == 4, do: get_euc(bor(h >>> 8, 1024)), else: get_euc(h)
-          end
+    to_euclist([], n_bytes, [euc | acc])
+  end
 
-      _ ->
-        to_euclist(
-          {t, sz},
-          out ++
-            if h == 0 and sz <= 4 - length(list) do
-              @padchr
-            else
-              get_euc(h)
-            end
-        )
-    end
+  defp to_euclist([ord | ords] = list, n_bytes, acc) do
+    euc =
+      if ord == 0 and n_bytes <= 4 - length(list) do
+        @padchr
+      else
+        get_euc(ord)
+      end
+
+    to_euclist(ords, n_bytes, [euc | acc])
+  end
+
+  defp get_euc(ord) when ord <= 1027 do
+    [0xB0 + div(ord, 94), 0xA1 + rem(ord, 94)]
   end
 
   defp to_ordlist(<<>>, out), do: out
@@ -139,13 +144,6 @@ defmodule BaseHangul do
 
     bigint = Enum.reduce(tmp, 0, fn x, a -> (a <<< 10) + x end)
     binary_part(<<bigint::40>>, 0, sz)
-  end
-
-  defp get_euc(ord) do
-    cond do
-      ord > 1027 -> raise ArgumentError, message: "Character ordinal out of range"
-      true -> [0xB0 + div(ord, 94), 0xA1 + rem(ord, 94)]
-    end
   end
 
   defp get_ord(n1, n2) do
