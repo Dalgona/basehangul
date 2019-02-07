@@ -53,48 +53,6 @@ defmodule BaseHangul do
     Stream.map(IO.binstream(sio, 12), &decunit(&1)) |> Enum.join("")
   end
 
-  @doc ~S"""
-  Takes data from `indev` IO device and writes BaseHangul-encoded string
-  to `outdev` IO device.
-
-  Returns `:ok` on success.
-
-  ## Examples
-
-      iex> {:ok, file} = File.open("some_file", [:read])
-      {:ok, #PID<0.XXX.0>}
-      iex> BaseHangul.encode(file, :stdio)
-      넥라넒굔덥램꼬먈눠멂불뮐궂뚠붉걍닐묩묻굡궂릅는놨궂몹듕낍
-      # ... more ...
-      놨궂몹듕낍닥듈럇낍뉴름댜둥:ok
-
-  """
-  def encode(indev, outdev \\ Process.group_leader()),
-    do: Enum.each(IO.binstream(indev, 5), &IO.write(outdev, encunit(&1)))
-
-  @doc ~S"""
-  Takes BaseHangul-encoded data from `indev` IO device and writes decoded data
-  to `outdev` IO device.
-
-  Returns `:ok` on success.
-
-  ## Examples
-
-      iex> {:ok, file} = File.open("some_file", [:read])
-      {:ok, #PID<0.XXX.0>}
-      iex> BaseHangul.decode(file, :stdio)
-      This is an encoded string.:ok
-
-  ## Notes
-
-  This function expects a UTF-8 encoded text.
-  Passing an invalid BaseHangul-encoded string as an input will result in an
-  undefined behavior.
-
-  """
-  def decode(indev, outdev \\ Process.group_leader()),
-    do: Enum.each(IO.binstream(indev, 12), &IO.write(outdev, decunit(&1)))
-
   defp encunit(x), do: :iconv.convert("euc-kr", "utf-8", x |> repack_8to10 |> to_euclist([]))
   defp decunit(x), do: :iconv.convert("utf-8", "euc-kr", x) |> to_ordlist([]) |> repack_10to8
 
