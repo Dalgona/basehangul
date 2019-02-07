@@ -27,8 +27,11 @@ defmodule BaseHangul do
 
   @spec encode(binary()) :: binary()
   def encode(input) when is_binary(input) do
-    {:ok, sio} = StringIO.open(input)
-    Stream.map(IO.binstream(sio, 5), &Encode.encunit(&1)) |> Enum.join("")
+    input
+    |> chunk_binary(5)
+    |> Task.async_stream(&Encode.encode_chunk/1)
+    |> Stream.map(&elem(&1, 1))
+    |> Enum.join("")
   end
 
   @doc ~S"""
@@ -58,6 +61,25 @@ defmodule BaseHangul do
   #
   # Internal Functions
   #
+
+  @spec chunk_binary(binary(), pos_integer()) :: Enumerable.t()
+  defp chunk_binary(binary, chunk_size) do
+    Stream.resource(
+      fn -> binary end,
+      fn
+        "" ->
+          {:halt, ""}
+
+        bin when byte_size(bin) < chunk_size ->
+          {[bin], ""}
+
+        bin ->
+          <<chunk::binary-size(chunk_size), rest::binary>> = bin
+          {[chunk], rest}
+      end,
+      fn _ -> :ok end
+    )
+  end
 
   defp decunit(x) do
     :iconv.convert("utf-8", "euc-kr", x) |> to_ordlist([]) |> repack_10to8

@@ -5,8 +5,8 @@ defmodule BaseHangul.Encode do
 
   @padchr [0xC8, 0xE5]
 
-  @spec encunit(binary()) :: binary()
-  def encunit(x) do
+  @spec encode_chunk(binary()) :: binary()
+  def encode_chunk(x) do
     {tbits, n_bytes} = repack_8to10(x)
     euc_list = to_euclist(tbits, n_bytes, [])
 
