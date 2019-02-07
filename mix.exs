@@ -4,7 +4,7 @@ defmodule BaseHangul.Mixfile do
   def project do
     [app: :basehangul,
      version: "0.2.1",
-     elixir: "~> 1.2",
+     elixir: "~> 1.6",
      description: "Elixir implementation of BaseHangul.",
      package: package,
      build_embedded: Mix.env == :prod,
@@ -18,8 +18,7 @@ defmodule BaseHangul.Mixfile do
 
   defp deps do
     [{:iconv, "~> 1.0"},
-     {:ex_doc, ">= 0.11.4", only: [:dev]},
-     {:earmark, "~> 0.2.1", only: [:dev]}]
+     {:ex_doc, "0.18.4", only: [:dev], runtime: false}]
   end
 
   defp package do
