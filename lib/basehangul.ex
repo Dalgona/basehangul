@@ -53,14 +53,26 @@ defmodule BaseHangul do
     Stream.map(IO.binstream(sio, 12), &decunit(&1)) |> Enum.join("")
   end
 
-  defp encunit(x), do: :iconv.convert("euc-kr", "utf-8", x |> repack_8to10 |> to_euclist([]))
-  defp decunit(x), do: :iconv.convert("utf-8", "euc-kr", x) |> to_ordlist([]) |> repack_10to8
+  #
+  # Internal Functions
+  #
 
+  defp encunit(x) do
+    :iconv.convert("euc-kr", "utf-8", x |> repack_8to10 |> to_euclist([]))
+  end
+
+  defp decunit(x) do
+    :iconv.convert("utf-8", "euc-kr", x) |> to_ordlist([]) |> repack_10to8
+  end
+
+  @spec repack_8to10(binary()) :: {[integer()], integer()}
   defp repack_8to10(bin) when byte_size(bin) <= 5 do
-    sz = byte_size(bin)
-    zpad = 8 * (5 - sz)
-    <<bignum::40>> = bin <> <<0::size(zpad)>>
-    {bignum |> repack_8to10_rev([]) |> Enum.reverse(), sz}
+    size = byte_size(bin)
+    pad_size = 8 * (5 - size)
+    padded = bin <> <<0::size(pad_size)>>
+    tbit_packed = for <<tbit::10 <- padded>>, do: tbit
+
+    {tbit_packed, size}
   end
 
   defp to_euclist({list, sz}, out) when length(list) > 0 do
@@ -128,9 +140,6 @@ defmodule BaseHangul do
     bigint = Enum.reduce(tmp, 0, fn x, a -> (a <<< 10) + x end)
     binary_part(<<bigint::40>>, 0, sz)
   end
-
-  defp repack_8to10_rev(0, list) when length(list) == 4, do: list
-  defp repack_8to10_rev(n, list), do: repack_8to10_rev(n >>> 10, list ++ [n &&& 0x3FF])
 
   defp get_euc(ord) do
     cond do
