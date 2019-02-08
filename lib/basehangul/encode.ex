@@ -8,9 +8,7 @@ defmodule BaseHangul.Encode do
   @spec encode_chunk(binary()) :: binary()
   def encode_chunk(x) do
     {tbits, n_bytes} = repack_8to10(x)
-    euc_list = to_euclist(tbits, n_bytes, [])
-
-    :iconv.convert("euc-kr", "utf-8", euc_list)
+    to_euclist(tbits, n_bytes, [])
   end
 
   @spec repack_8to10(binary()) :: {[integer()], integer()}

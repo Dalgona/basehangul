@@ -6,7 +6,7 @@ defmodule BaseHangul.Decode do
   @padchr [0xC8, 0xE5]
 
   def decode_chunk(x) do
-    euc_bytes = for <<b::8 <- :iconv.convert("utf-8", "euc-kr", x)>>, do: b
+    euc_bytes = for <<b::8 <- x>>, do: b
 
     case euc_bytes |> Enum.chunk_every(2) |> to_ords([]) do
       {:ok, ords} -> {:ok, repack_10to8(ords)}

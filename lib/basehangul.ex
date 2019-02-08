@@ -24,11 +24,14 @@ defmodule BaseHangul do
 
   @spec encode(binary()) :: binary()
   def encode(input) when is_binary(input) do
-    input
-    |> chunk_binary(5)
-    |> Task.async_stream(&Encode.encode_chunk/1)
-    |> Stream.map(&elem(&1, 1))
-    |> Enum.join("")
+    euc_list =
+      input
+      |> chunk_binary(5)
+      |> Task.async_stream(&Encode.encode_chunk/1)
+      |> Stream.map(&elem(&1, 1))
+      |> Enum.to_list()
+
+    :iconv.convert("euc-kr", "utf-8", euc_list)
   end
 
   @doc ~S"""
@@ -53,8 +56,10 @@ defmodule BaseHangul do
 
   @spec decode(binary()) :: binary()
   def decode(input) when is_binary(input) do
-    input
-    |> chunk_binary(12)
+    euc_bin = :iconv.convert("utf-8", "euc-kr", input)
+
+    euc_bin
+    |> chunk_binary(8)
     |> Task.async_stream(&Decode.decode_chunk/1)
     |> Enum.map(&elem(&1, 1))
     |> aggregate([])
