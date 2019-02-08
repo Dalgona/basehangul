@@ -57,7 +57,7 @@ defmodule BaseHangul.Decode do
   defp get_byte_size(ords) do
     case Enum.reverse(ords) do
       [ord | _] when ord >= 1024 -> 4
-      [-1 | _] = list -> list |> Enum.drop_while(& &1 == -1) |> length()
+      [-1 | _] = list -> list |> Enum.drop_while(&(&1 == -1)) |> length()
       list when is_list(list) -> 5
     end
   end
