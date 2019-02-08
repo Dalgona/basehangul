@@ -1,8 +1,10 @@
 /_build
 /cover
 /deps
+/doc
 erl_crash.dump
 *.ez
 *.swp
 *.swo
+*.tar
 .DS_Store

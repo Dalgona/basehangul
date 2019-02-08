@@ -15,48 +15,40 @@ end
 
 defp deps do
     [ ... ,
-     {:basehangul, "~> 0.1.0"},
+     {:basehangul, "~> 0.9.0"},
       ... ]
 end
 ```
 
-This implementation supports encoding/decoding through any I/O devices.
+`BaseHangul.encode/1` and `BaseHangul.decode/1` expect a binary
+as an argument.
 
 ```elixir
-% iex -S mix
-
-iex(1)> {:ok, sio} = StringIO.open "Hello, world!"
-{:ok, #PID<0.180.0>}
-iex(2)> BaseHangul.encode sio    # default output device is `Process.group_leader()`.
-낏뗐맸굉깖둠덱뮴닥땡결흐:ok
-iex(3)> {:ok, sio} = StringIO.open "낏뗐맸굉깖둠덱뮴닥땡결흐"
-{:ok, #PID<0.184.0>}
-iex(4)> BaseHangul.decode sio, :stdio
-Hello, world!:ok
+iex> BaseHangul.encode("Hello, world!")
+"낏뗐맸굉깖둠덱뮴닥땡결흐"
+iex> BaseHangul.encode(<<0, 1, 2, 3, 4>>)
+"가갚궁링"
 ```
 
-And it takes strings(binaries), too. In this case, those functions return a result string(binary).
-
 ```elixir
-iex(5)> encoded = BaseHangul.encode "Hello, world!"
-"낏뗐맸굉깖둠덱뮴닥땡결흐"
-iex(6)> decoded = BaseHangul.decode encoded
+iex> BaseHangul.decode("낏뗐맸굉깖둠덱뮴닥땡결흐")
 "Hello, world!"
-iex(7)> [encoded, decoded]
-["낏뗐맸굉깖둠덱뮴닥땡결흐", "Hello, world!"]
+iex> BaseHangul.decode("가갚궁링")
+<<0, 1, 2, 3, 4>>
 ```
 
 Have fun!
 
 ## License
 
-Copyright &copy; Dalgona. <dalgona@hontou.moe>
-
-You can do whatever you wanna do as long as you **do not** sell the source code or compiled binaries to anyone else.
-
-This software is provided **"AS IS"**. I **do not** guarantee that this software will work correctly forever and I **am not** responsible for any loss of data caused by this software.
+WTFPL
 
 ## Changelog
+
+### 0.9.0 (8 February 2019)
+
+* Massive refactoring and overhaul.
+* Removed functions taking an IO device.
 
 ### 0.2.1 (12 April 2016)
 
