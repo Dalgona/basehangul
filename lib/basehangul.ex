@@ -56,8 +56,12 @@ defmodule BaseHangul do
     input
     |> chunk_binary(12)
     |> Task.async_stream(&Decode.decode_chunk/1)
-    |> Stream.map(&elem(&1, 1))
-    |> Enum.join("")
+    |> Enum.map(&elem(&1, 1))
+    |> aggregate([])
+    |> case do
+      {:ok, binaries} -> {:ok, Enum.join(binaries, "")}
+      {:error, _} = error -> error
+    end
   end
 
   #
@@ -82,4 +86,12 @@ defmodule BaseHangul do
       fn _ -> :ok end
     )
   end
+
+  @spec aggregate([{:ok, binary()} | {:error, term()}], [binary()]) ::
+          {:ok, [binary()]} | {:error, term()}
+  defp aggregate(results, acc)
+
+  defp aggregate([], acc), do: {:ok, Enum.reverse(acc)}
+  defp aggregate([{:error, _} = error | _], _acc), do: error
+  defp aggregate([{:ok, x} | results], acc), do: aggregate(results, [x | acc])
 end
