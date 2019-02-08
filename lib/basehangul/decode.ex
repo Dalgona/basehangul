@@ -17,7 +17,7 @@ defmodule BaseHangul.Decode do
   @spec to_ords([[integer()]], [integer()]) :: {:ok, [integer()]} | {:error, term()}
   defp to_ords(pairs, acc)
   defp to_ords([], acc), do: {:ok, Enum.reverse(acc)}
-  defp to_ords([@padchr | pairs], acc), do: to_ords(pairs, [false | acc])
+  defp to_ords([@padchr | pairs], acc), do: to_ords(pairs, [-1 | acc])
 
   defp to_ords([[b1, b2] | pairs], acc) do
     case get_ord(b1, b2) do
@@ -37,20 +37,28 @@ defmodule BaseHangul.Decode do
   end
 
   defp repack_10to8(ords) do
-    tmp = Enum.map(ords, &if(&1 == false, do: 0, else: &1))
-    sz = Enum.find_index(ords, &(&1 == false))
-    last = List.last(tmp)
+    [x | xs] =
+      ords
+      |> Enum.map(&if(&1 == -1, do: 0, else: &1))
+      |> Enum.reverse()
 
-    case sz do
-      x when is_number(x) or (is_nil(x) and last < 1024) ->
-        sz = sz || 5
+    n_bytes = get_byte_size(ords)
+    last = if n_bytes == 4, do: (x - 1024) <<< 8, else: x
 
-      _ ->
-        sz = 4
-        tmp = List.update_at(tmp, 3, &((&1 - 1024) <<< 8))
+    bigint =
+      [last | xs]
+      |> Enum.reverse()
+      |> Enum.reduce(0, fn ord, acc -> (acc <<< 10) + ord end)
+
+    binary_part(<<bigint::40>>, 0, n_bytes)
+  end
+
+  @spec get_byte_size([integer()]) :: integer()
+  defp get_byte_size(ords) do
+    case Enum.reverse(ords) do
+      [ord | _] when ord >= 1024 -> 4
+      [-1 | _] = list -> list |> Enum.drop_while(& &1 == -1) |> length()
+      list when is_list(list) -> 5
     end
-
-    bigint = Enum.reduce(tmp, 0, fn x, a -> (a <<< 10) + x end)
-    binary_part(<<bigint::40>>, 0, sz)
   end
 end
