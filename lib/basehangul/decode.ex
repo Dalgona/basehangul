@@ -6,12 +6,39 @@ defmodule BaseHangul.Decode do
   @padchr [0xC8, 0xE5]
 
   def decode_chunk(x) do
-    :iconv.convert("utf-8", "euc-kr", x) |> to_ordlist([]) |> repack_10to8
+    euc_bytes = for <<b::8 <- :iconv.convert("utf-8", "euc-kr", x)>>, do: b
+
+    case euc_bytes |> Enum.chunk_every(2) |> to_ords([]) do
+      {:ok, ords} -> {:ok, repack_10to8(ords)}
+      {:error, _} = error -> error
+    end
   end
 
-  defp repack_10to8(ordlist) do
-    tmp = Enum.map(ordlist, &if(&1 == false, do: 0, else: &1))
-    sz = Enum.find_index(ordlist, &(&1 == false))
+  @spec to_ords([[integer()]], [integer()]) :: {:ok, [integer()]} | {:error, term()}
+  defp to_ords(pairs, acc)
+  defp to_ords([], acc), do: {:ok, Enum.reverse(acc)}
+  defp to_ords([@padchr | pairs], acc), do: to_ords(pairs, [false | acc])
+
+  defp to_ords([[b1, b2] | pairs], acc) do
+    case get_ord(b1, b2) do
+      {:ok, ord} -> to_ords(pairs, [ord | acc])
+      {:error, _} = error -> error
+    end
+  end
+
+  defp to_ords(_, _acc), do: {:error, :invalid}
+
+  @spec get_ord(integer(), integer()) :: {:ok, integer()} | {:error, term()}
+  defp get_ord(n1, n2) do
+    case (n1 - 0xB0) * 94 + (n2 - 0xA1) do
+      num when num > 1027 or num < 0 -> {:error, :invalid}
+      num -> {:ok, num}
+    end
+  end
+
+  defp repack_10to8(ords) do
+    tmp = Enum.map(ords, &if(&1 == false, do: 0, else: &1))
+    sz = Enum.find_index(ords, &(&1 == false))
     last = List.last(tmp)
 
     case sz do
@@ -25,37 +52,5 @@ defmodule BaseHangul.Decode do
 
     bigint = Enum.reduce(tmp, 0, fn x, a -> (a <<< 10) + x end)
     binary_part(<<bigint::40>>, 0, sz)
-  end
-
-  defp to_ordlist(<<>>, out), do: out
-
-  defp to_ordlist(eucstr, out) do
-    try do
-      <<n1, n2>> <> rest = eucstr
-
-      to_ordlist(
-        rest,
-        out ++
-          if [n1, n2] == @padchr do
-            [false]
-          else
-            [get_ord(n1, n2)]
-          end
-      )
-    rescue
-      MatchError -> raise ArgumentError, message: "Not a vaild BaseHangul string"
-    end
-  end
-
-  defp get_ord(n1, n2) do
-    num = (n1 - 0xB0) * 94 + (n2 - 0xA1)
-
-    cond do
-      num > 1027 or num < 0 ->
-        raise ArgumentError, message: "Not a valid BaseHangul string"
-
-      true ->
-        num
-    end
   end
 end
